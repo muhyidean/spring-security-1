@@ -6,13 +6,14 @@ import edu.miu.springsecurity1.entity.Review;
 import edu.miu.springsecurity1.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/products")
-@CrossOrigin
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ProductController {
 
     private final ProductService productService;
@@ -27,6 +28,7 @@ public class ProductController {
     }
 
     @GetMapping
+//    @PreAuthorize("hasRole('ROLE_CLIENT')")
     public List<Product> getAll() {
         return productService.getAll();
     }
