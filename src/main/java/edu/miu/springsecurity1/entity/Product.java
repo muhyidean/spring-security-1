@@ -1,10 +1,11 @@
 package edu.miu.springsecurity1.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 
-import javax.persistence.*;
+
 import java.util.List;
 
 @Entity

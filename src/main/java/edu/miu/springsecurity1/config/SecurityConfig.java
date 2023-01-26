@@ -41,9 +41,9 @@ public class SecurityConfig {
 
         http
                 .csrf().disable().cors().and()
-                .authorizeRequests()
-                .antMatchers("/api/v1/authenticate/**").permitAll()
-                .antMatchers("/api/v1/products").hasAuthority("CLIENT")
+                .authorizeHttpRequests()
+                .requestMatchers("/api/v1/authenticate/**").permitAll()
+                .requestMatchers("/api/v1/products").hasAuthority("CLIENT")
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -57,7 +57,7 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().antMatchers("/images/**", "/js/**", "/webjars/**");
+        return (web) -> web.ignoring().requestMatchers("/images/**", "/js/**", "/webjars/**");
     }
 
     @Bean
