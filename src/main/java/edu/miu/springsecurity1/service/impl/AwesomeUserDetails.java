@@ -14,10 +14,8 @@ import java.util.stream.Collectors;
 public class AwesomeUserDetails implements UserDetails {
 
     private String email;
-
     @JsonIgnore
     private String password;
-
     private List<Role> roles;
 
     public AwesomeUserDetails(User user) {

@@ -3,12 +3,19 @@ package edu.miu.springsecurity1.controller;
 
 import edu.miu.springsecurity1.entity.Product;
 import edu.miu.springsecurity1.entity.Review;
+import edu.miu.springsecurity1.entity.Role;
+import edu.miu.springsecurity1.repository.ProductRepo;
+import edu.miu.springsecurity1.repository.UserRepo;
 import edu.miu.springsecurity1.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @RestController
@@ -54,5 +61,7 @@ public class ProductController {
         // for demo purposes, this request is not authorized.
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
     }
+
+
 
 }
