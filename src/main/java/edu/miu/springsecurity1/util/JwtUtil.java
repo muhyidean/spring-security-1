@@ -1,7 +1,12 @@
 package edu.miu.springsecurity1.util;
 
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -11,6 +16,8 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
+
+    UserDetailsService userDetailsService;
     private final String secret = "top-secret";
     private final long expiration = 5 * 60 * 60 * 60;
 //     private final long expiration = 5;
@@ -19,6 +26,8 @@ public class JwtUtil {
     // this wil extract a claim from a token, its used in the methods above to get the username and date
     // TODO When this detects the access token is expired it will throw and exception.
     //  handle the exception and do not return null
+
+
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
             return claimsResolver.apply(claims);

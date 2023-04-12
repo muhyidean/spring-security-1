@@ -3,6 +3,7 @@ package edu.miu.springsecurity1.filter;
 import edu.miu.springsecurity1.util.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -38,26 +39,28 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
-            try{
+            try {
                 email = jwtUtil.getUsernameFromToken(token);
-            }catch (ExpiredJwtException e){ // TODO come back here!
-                String isRefreshToken = request.getHeader("isRefreshToken");
-            }
+            } catch (ExpiredJwtException e) { // TODO come back here!
 
+            }
         }
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (email != null && jwtUtil.validateToken(token)) {
             var userDetails = userDetailsService.loadUserByUsername(email);
-            boolean isTokenValid = jwtUtil.validateToken(token);
-            if (isTokenValid) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+
+        // THIS WILL BE APPLIED - Better approach
+//            if (token != null && jwtUtil.validateToken(token)) {
+//            Authentication auth = jwtUtil.getAuthentication(token); // TODO need to get the authentication
+//            SecurityContextHolder.getContext().setAuthentication(auth);
+//        }
 
         filterChain.doFilter(request, response);
     }
 }
+

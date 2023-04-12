@@ -2,9 +2,12 @@ package edu.miu.springsecurity1.config;
 
 
 import edu.miu.springsecurity1.filter.JwtFilter;
+import edu.miu.springsecurity1.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,12 +21,19 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
+
+    String [] roles = {"CLIENT" , "ADMIN"}; // You can make this a call from the DB
+//  String [] roles = {"CLIENT"}; // Try this :)
 
 
     @Bean
@@ -43,7 +53,8 @@ public class SecurityConfig {
                 .csrf().disable().cors().and()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/v1/authenticate/**").permitAll()
-                .requestMatchers("/api/v1/products").hasAuthority("CLIENT")
+//                .requestMatchers("/api/v1/products").hasAuthority("CLIENT")
+                .requestMatchers("/api/v1/products").hasAnyAuthority(roles) // Dynamic authorities
                 .anyRequest()
                 .authenticated()
                 .and()
