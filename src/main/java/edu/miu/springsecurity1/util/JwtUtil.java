@@ -125,10 +125,10 @@ public class JwtUtil {
 
     public Authentication getAuthentication(String token) {
         Claims claims = getAllClaimsFromToken(token);
-        String username = claims.getSubject();
-        var roles = (List<? extends GrantedAuthority>) claims.get("roles");
-        UserDetails userDetails = new User(username, "", roles);
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject()); // LEFT THIS HERE ON PURPOSE
+//        String username = claims.getSubject();
+//        var roles = (List<? extends GrantedAuthority>) claims.get("roles");
+//        UserDetails userDetails = new User(username, "", roles);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject()); // LEFT THIS HERE ON PURPOSE
         var authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
         return authentication;
