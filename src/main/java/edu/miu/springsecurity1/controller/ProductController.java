@@ -34,7 +34,7 @@ public class ProductController {
     }
 
     @GetMapping
-//    @PreAuthorize("hasRole('ROLE_CLIENT')")
+    @PreAuthorize("hasRole('ROLE_CLIENT')")
     public List<Product> getAll() {
         return productService.getAll();
     }

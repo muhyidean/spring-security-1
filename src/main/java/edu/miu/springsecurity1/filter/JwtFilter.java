@@ -34,33 +34,29 @@ public class JwtFilter extends OncePerRequestFilter {
 
         final String authorizationHeader = request.getHeader("Authorization");
 
-        String email = null;
-        String token = null;
-
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-            try {
-                email = jwtUtil.getUsernameFromToken(token);
-            } catch (ExpiredJwtException e) { // TODO come back here!
-
+            var token = extractTokenFromRequest(request);
+            if (token != null && jwtUtil.validateToken(token)) {
+                SecurityContextHolder.getContext().setAuthentication(jwtUtil.getAuthentication(token));
             }
         }
-
-        if (email != null && jwtUtil.validateToken(token)) {
-            var userDetails = userDetailsService.loadUserByUsername(email);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
-
-        // THIS WILL BE APPLIED - Better approach
-//            if (token != null && jwtUtil.validateToken(token)) {
-//            Authentication auth = jwtUtil.getAuthentication(token); // TODO need to get the authentication
-//            SecurityContextHolder.getContext().setAuthentication(auth);
-//        }
-
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Helper method
+     *
+     * @param request
+     * @return
+     */
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        final String authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            var token = authorizationHeader.substring(7);
+            return token;
+        }
+        return null;
     }
 }
 

@@ -2,25 +2,29 @@ package edu.miu.springsecurity1.util;
 
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
 
+    @Autowired
     UserDetailsService userDetailsService;
     private final String secret = "top-secret";
     private final long expiration = 5 * 60 * 60 * 60;
-//     private final long expiration = 5;
+    //     private final long expiration = 5;
     private final long refreshExpiration = 5 * 60 * 60 * 60 * 60;
 
     // this wil extract a claim from a token, its used in the methods above to get the username and date
@@ -30,15 +34,15 @@ public class JwtUtil {
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
-            return claimsResolver.apply(claims);
+        return claimsResolver.apply(claims);
     }
 
     private Claims getAllClaimsFromToken(String token) {
-            return Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
-                    .getBody();
-        }
+        return Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(token)
+                .getBody();
+    }
 
     public Date getIssuedAtDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getIssuedAt);
@@ -56,6 +60,8 @@ public class JwtUtil {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("roles",userDetails.getAuthorities());
+
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
@@ -71,7 +77,7 @@ public class JwtUtil {
     }
 
     // Overridden to accommodate the refresh token
-    public String doGenerateToken( String subject) {
+    public String doGenerateToken(String subject) {
         return Jwts.builder()
                 .setSubject(subject)
                 .setIssuedAt(new Date())
@@ -117,7 +123,16 @@ public class JwtUtil {
         return false;
     }
 
-
+    public Authentication getAuthentication(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        String username = claims.getSubject();
+        var roles = (List<? extends GrantedAuthority>) claims.get("roles");
+        UserDetails userDetails = new User(username, "", roles);
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject()); // LEFT THIS HERE ON PURPOSE
+        var authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        return authentication;
+    }
 
 
 

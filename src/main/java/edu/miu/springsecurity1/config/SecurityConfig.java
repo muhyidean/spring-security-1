@@ -32,7 +32,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
 
-    String [] roles = {"CLIENT" , "ADMIN"}; // You can make this a call from the DB
+    String[] roles = {"CLIENT","ADMIN"}; // You can make this a call from the DB
 //  String [] roles = {"CLIENT"}; // Try this :)
 
 
@@ -48,7 +48,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
                 .csrf().disable().cors().and()
                 .authorizeHttpRequests()
