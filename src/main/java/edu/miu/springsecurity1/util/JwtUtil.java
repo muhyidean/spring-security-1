@@ -1,5 +1,6 @@
 package edu.miu.springsecurity1.util;
 
+import edu.miu.springsecurity1.entity.Role;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,6 @@ public class JwtUtil {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
-
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -127,7 +127,16 @@ public class JwtUtil {
         Claims claims = getAllClaimsFromToken(token);
 //        String username = claims.getSubject();
 //        var roles = (List<? extends GrantedAuthority>) claims.get("roles");
+//
+//        roles.stream()
+//                .map(role -> new SimpleGrantedAuthority(role.))
+//                .collect(Collectors.toList());
+//        List<GrantedAuthority> authorities = new ArrayList<>();
+//        for (Role role : roles.getRoles()) {
+//            authorities.add(new SimpleGrantedAuthority(role.getName()));
+//        }
 //        UserDetails userDetails = new User(username, "", roles);
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject()); // LEFT THIS HERE ON PURPOSE
         var authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());

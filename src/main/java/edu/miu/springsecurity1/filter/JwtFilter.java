@@ -32,14 +32,12 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        final String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             var token = extractTokenFromRequest(request);
             if (token != null && jwtUtil.validateToken(token)) {
                 SecurityContextHolder.getContext().setAuthentication(jwtUtil.getAuthentication(token));
             }
-        }
+
         filterChain.doFilter(request, response);
     }
 
