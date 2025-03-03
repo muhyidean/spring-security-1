@@ -58,23 +58,23 @@ public class JwtUtil {
         return expiration.before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("roles",userDetails.getAuthorities());
+//    public String generateToken(UserDetails userDetails) {
+//        Map<String, Object> claims = new HashMap<>();
+//        claims.put("roles",userDetails.getAuthorities());
+//
+//        return doGenerateToken(claims, userDetails.getUsername());
+//    }
 
-        return doGenerateToken(claims, userDetails.getUsername());
-    }
 
-
-    private String doGenerateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS512, secret)
-                .compact();
-    }
+//    private String doGenerateToken(Map<String, Object> claims, String subject) {
+//        return Jwts.builder()
+//                .setClaims(claims)
+//                .setSubject(subject)
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+//                .signWith(SignatureAlgorithm.HS512, secret)
+//                .compact();
+//    }
 
     // Overridden to accommodate the refresh token
     public String doGenerateToken(String subject) {
@@ -86,14 +86,14 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String email) {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(SignatureAlgorithm.HS512, secret)
-                .compact();
-    }
+//    public String generateRefreshToken(String email) {
+//        return Jwts.builder()
+//                .setSubject(email)
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
+//                .signWith(SignatureAlgorithm.HS512, secret)
+//                .compact();
+//    }
 
     public String getSubject(String token) {
         return Jwts.parser()
@@ -101,6 +101,45 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public String generateRefreshToken(String subject) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh"); // Add a "type" claim
+        return doGenerateToken(claims, subject);
+    }
+
+    public boolean isRefreshToken(String token){
+        try{
+            Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+            return "refresh".equals(claims.get("type"));
+        } catch(Exception e){
+            return false;
+        }
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "access"); // Add a "type" claim
+        return doGenerateToken(claims, userDetails.getUsername());
+    }
+
+    public boolean isAccessToken(String token){
+        try{
+            Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+            return "access".equals(claims.get("type"));
+        } catch(Exception e){
+            return false;
+        }
+    }
+
+    public String doGenerateToken(Map<String, Object> claims, String subject) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 
     public boolean validateToken(String token) {
@@ -124,25 +163,14 @@ public class JwtUtil {
     }
 
     public Authentication getAuthentication(String token) {
+        if (!isAccessToken(token)) {
+            return null; // or throw an exception indicating invalid token type
+        }
         Claims claims = getAllClaimsFromToken(token);
-//        String username = claims.getSubject();
-//        var roles = (List<? extends GrantedAuthority>) claims.get("roles");
-//
-//        roles.stream()
-//                .map(role -> new SimpleGrantedAuthority(role.))
-//                .collect(Collectors.toList());
-//        List<GrantedAuthority> authorities = new ArrayList<>();
-//        for (Role role : roles.getRoles()) {
-//            authorities.add(new SimpleGrantedAuthority(role.getName()));
-//        }
-//        UserDetails userDetails = new User(username, "", roles);
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject()); // LEFT THIS HERE ON PURPOSE
-        var authentication = new UsernamePasswordAuthenticationToken(
+        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
-        return authentication;
     }
-
 
 
     public String doGenerateRefreshToken(Map<String, Object> claims, String subject) {
@@ -170,3 +198,26 @@ public class JwtUtil {
         return result;
     }
 }
+
+
+
+//########################################
+//public Authentication getAuthentication(String token) {
+//    Claims claims = getAllClaimsFromToken(token);
+////        String username = claims.getSubject();
+////        var roles = (List<? extends GrantedAuthority>) claims.get("roles");
+////
+////        roles.stream()
+////                .map(role -> new SimpleGrantedAuthority(role.))
+////                .collect(Collectors.toList());
+////        List<GrantedAuthority> authorities = new ArrayList<>();
+////        for (Role role : roles.getRoles()) {
+////            authorities.add(new SimpleGrantedAuthority(role.getName()));
+////        }
+////        UserDetails userDetails = new User(username, "", roles);
+//
+//    UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject()); // LEFT THIS HERE ON PURPOSE
+//    var authentication = new UsernamePasswordAuthenticationToken(
+//            userDetails, null, userDetails.getAuthorities());
+//    return authentication;
+//}
