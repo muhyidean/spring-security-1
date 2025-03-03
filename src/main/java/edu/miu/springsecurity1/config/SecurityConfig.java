@@ -49,18 +49,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable().cors().and()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/v1/authenticate/**").permitAll()
-//                .requestMatchers("/api/v1/products").hasAuthority("CLIENT")
-                .requestMatchers("/api/v1/products/**").hasAnyAuthority(roles) // Dynamic authorities
-                .anyRequest()
-                .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/v1/authenticate/**").permitAll()  // Permit all for authentication endpoints
+//                        .requestMatchers("/api/v1/products").hasAuthority("CLIENT")  // Require "CLIENT" authority
+                        .requestMatchers("/api/v1/products/**").hasAnyAuthority(roles)  // Dynamic authorities (replace 'roles' with your logic)
+                        .anyRequest().authenticated()  // All other requests require authentication
+                )
+                // Configure session management (stateless)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // Add custom JWT filter before UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
